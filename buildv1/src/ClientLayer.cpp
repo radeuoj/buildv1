@@ -110,6 +110,16 @@ void syntaxHighlight(File* f)
             return;
         }
 
+        static std::string GetWord(const char* text)
+        {
+            std::string newText(text);
+            int find = newText.find(" ");
+            std::string res = newText.substr(0, find);
+            if (res == "")
+                return newText;
+            return res;
+        }
+
         static int Strnicmp(const char* str1, const char* str2, int n) 
         {
             int d = 0; 
@@ -142,13 +152,19 @@ void syntaxHighlight(File* f)
                     return 0;
                 }
 
-                for (int i = 0; i < COLORED_ELEMENTS; i++)
+                std::string word = GetWord(&color_data->TextBegin[user_data->tokens[color_data->TokenIdx].begin]);
+
+                bool exists = std::find(std::begin(colored_token_prefix), std::end(colored_token_prefix), word) != std::end(colored_token_prefix);
+
+                //std::cout << exists << std::endl;
+
+                //for (int i = 0; i < COLORED_ELEMENTS; i++)
                 {
                     // If the current token matches the prefix, color it red
-                    if (Strnicmp(&color_data->TextBegin[user_data->tokens[color_data->TokenIdx].begin], colored_token_prefix[i], (int)strlen(colored_token_prefix[i])) == 0 && user_data->tokens[color_data->TokenIdx].end - user_data->tokens[color_data->TokenIdx].begin == strlen(colored_token_prefix[i]))
+                    if (exists)
                     {
                         color_data->Color = ImColor(user_data->color);
-                        color_data->CharsForColor = strlen(colored_token_prefix[i])/*user_data->tokens[color_data->TokenIdx].end - char_idx*/; // color from the current char to the token end
+                        color_data->CharsForColor = word.size()/*user_data->tokens[color_data->TokenIdx].end - char_idx*/; // color from the current char to the token end
                     }
                 }
 
