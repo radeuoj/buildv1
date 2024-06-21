@@ -63,20 +63,23 @@ struct Funcs
 void syntaxHighlight(File* f)
 {
 
-    constexpr int COLORED_ELEMENTS = 2;
-    static char colored_token_prefix[COLORED_ELEMENTS][64] = {
-        "kit",
-        "pamoli"
+    static std::map<std::string, int> colored_token_element =
+    {
+        {"=", 0},
+        {"let", 1},
+        {"const", 1},
+        {"function", 1},
     };
+
+    constexpr int COLORED_ELEMENTS = 4;
 
     struct Token { int begin; int end; };
 
     struct InputTextUserData 
     { 
         ImVector<Token> tokens; 
-        ImVec4 color = ImVec4(255.0f / 255.0f, 0.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f); 
         ImVec4 colors[COLORED_ELEMENTS] = {
-            ImVec4(255.0f / 255.0f, 0.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f),
+            ImVec4(51.0f / 238.0f, 238.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f),
             ImVec4(255.0f / 255.0f, 158.0f / 255.0f, 13.0f / 255.0f, 255.0f / 255.0f)
         };
     };
@@ -162,22 +165,12 @@ void syntaxHighlight(File* f)
 
                 std::string word = GetWord(&color_data->TextBegin[user_data->tokens[color_data->TokenIdx].begin]);
 
-                auto find = std::find(std::begin(colored_token_prefix), std::end(colored_token_prefix), word);
-
-                bool exists = find != std::end(colored_token_prefix);
-
-                int index = std::distance(colored_token_prefix, find);
-
-                std::cout << index << std::endl;
-
-                //for (int i = 0; i < COLORED_ELEMENTS; i++)
+                //std::cout << colored_token_element.begin()->first << std::endl;
+                // If the current token matches the prefix, color it red
+                if (colored_token_element.count(word))
                 {
-                    // If the current token matches the prefix, color it red
-                    if (exists)
-                    {
-                        color_data->Color = ImColor(user_data->colors[index]);
-                        color_data->CharsForColor = word.size()/*user_data->tokens[color_data->TokenIdx].end - char_idx*/; // color from the current char to the token end
-                    }
+                    color_data->Color = ImColor(user_data->colors[colored_token_element[word]]);
+                    color_data->CharsForColor = word.size()/*user_data->tokens[color_data->TokenIdx].end - char_idx*/; // color from the current char to the token end
                 }
 
                 // If there is another token, callback once we hit the start of it. otherwise, stop calling back.
@@ -192,7 +185,7 @@ void syntaxHighlight(File* f)
     };
 
     static ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_CallbackAlways | ImGuiInputTextFlags_CallbackCharFilter;
-    if (colored_token_prefix[0] != '\0') { flags |= ImGuiInputTextFlags_CallbackColor; }
+    if (colored_token_element.begin()->first.c_str() != '\0') { flags |= ImGuiInputTextFlags_CallbackColor; }
     else { flags &= ~ImGuiInputTextFlags_CallbackColor; }
     if (ImGui::InputTextMultiline("##MyStr", &f->text, ImVec2(-FLT_MIN, -FLT_MIN), flags, SyntaxHighlight::MyInputTextCallback, &textData))
         textData.tokens.clear();
