@@ -71,7 +71,15 @@ void syntaxHighlight(File* f)
 
     struct Token { int begin; int end; };
 
-    struct InputTextUserData { ImVector<Token> tokens; ImVec4 color = ImVec4(255.0f / 255.0f, 0.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f); };
+    struct InputTextUserData 
+    { 
+        ImVector<Token> tokens; 
+        ImVec4 color = ImVec4(255.0f / 255.0f, 0.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f); 
+        ImVec4 colors[COLORED_ELEMENTS] = {
+            ImVec4(255.0f / 255.0f, 0.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f),
+            ImVec4(255.0f / 255.0f, 158.0f / 255.0f, 13.0f / 255.0f, 255.0f / 255.0f)
+        };
+    };
     static InputTextUserData textData;
 
     struct SyntaxHighlight
@@ -154,16 +162,20 @@ void syntaxHighlight(File* f)
 
                 std::string word = GetWord(&color_data->TextBegin[user_data->tokens[color_data->TokenIdx].begin]);
 
-                bool exists = std::find(std::begin(colored_token_prefix), std::end(colored_token_prefix), word) != std::end(colored_token_prefix);
+                auto find = std::find(std::begin(colored_token_prefix), std::end(colored_token_prefix), word);
 
-                //std::cout << exists << std::endl;
+                bool exists = find != std::end(colored_token_prefix);
+
+                int index = std::distance(colored_token_prefix, find);
+
+                std::cout << index << std::endl;
 
                 //for (int i = 0; i < COLORED_ELEMENTS; i++)
                 {
                     // If the current token matches the prefix, color it red
                     if (exists)
                     {
-                        color_data->Color = ImColor(user_data->color);
+                        color_data->Color = ImColor(user_data->colors[index]);
                         color_data->CharsForColor = word.size()/*user_data->tokens[color_data->TokenIdx].end - char_idx*/; // color from the current char to the token end
                     }
                 }
